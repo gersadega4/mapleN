@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Map Farming Calculator</title>
+
+<style>
+
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+background:#0d0d0d;
+color:white;
+font-family:Arial;
+}
+
+h1{
+margin:20px;
+}
+
+.container{
+display:grid;
+grid-template-columns:65% 35%;
+gap:20px;
+padding:20px;
+}
+
+.rank-area{
+position:sticky;
+top:20px;
+height:95vh;
+overflow:auto;
+}
+
+.card{
+background:#1c1c1c;
+padding:15px;
+margin-bottom:10px;
+border-radius:10px;
+}
+
+.map-card{
+display:flex;
+align-items:center;
+justify-content:space-between;
+}
+
+.map-card h3{
+width:250px;
+}
+
+input{
+width:80px;
+}
+
+.best{
+border:2px solid #00ff77;
+}
+
+.recommend{
+color:#00ff77;
+font-size:20px;
+font-weight:bold;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<h1>Map Farming Calculator</h1>
+
+
+<div class="container">
+
+
+<div>
+
+<h2>Map Data</h2>
+
+<div id="maps"></div>
+
+</div>
+
+
+
+<div class="rank-area">
+
+<h2>Ranking</h2>
+
+<div id="result"></div>
+
+</div>
+
+
+</div>
+
+
+
+<script>
+
+
+// ==========================
+// DATABASE FARM CP 200K
+// ==========================
+
+
+let maps=[
+
+
+// SCRAPYARD
+
+
+{
+name:"Scrapyard - BH Maze 1",
+
+baseBoost:146,
+displayBoost:0,
+
+baseKill:200,
+baseNeso:3323,
+
+kill:240
+},
+
+
+
+{
+name:"Scrapyard - BH Junction 3",
+
+baseBoost:202,
+displayBoost:0,
+
+baseKill:200,
+baseNeso:4157,
+
+kill:200
+},
+
+
+
+{
+name:"Scrapyard - BH Entrance",
+
+baseBoost:160,
+displayBoost:0,
+
+baseKill:253,
+baseNeso:4600,
+
+kill:253
+},
+
+
+
+
+// REVERSE CITY
+
+
+{
+name:"Reverse City - T-Boys Train 3",
+
+baseBoost:160,
+displayBoost:0,
+
+baseKill:225,
+baseNeso:3900,
+
+kill:250
+},
+
+
+
+{
+name:"Reverse City - Underground Train 1",
+
+baseBoost:156,
+displayBoost:0,
+
+baseKill:200,
+baseNeso:3400,
+
+kill:250
+},
+
+
+
+
+
+// DARK WORLD TREE
+
+
+{
+name:"DWT - Blue Slime",
+
+baseBoost:246,
+displayBoost:0,
+
+baseKill:175,
+baseNeso:4700,
+
+kill:185
+},
+
+
+
+
+{
+name:"DWT - WSC",
+
+baseBoost:197,
+displayBoost:0,
+
+baseKill:165,
+baseNeso:3195,
+
+kill:175
+},
+
+
+
+
+
+
+// VANISHING JOURNEY
+
+
+{
+name:"VJ - Fork Road 1",
+
+baseBoost:212,
+displayBoost:0,
+
+baseKill:175,
+baseNeso:3700,
+
+// update terbaru:
+// nonstop farm + loot
+kill:210
+},
+
+
+
+
+{
+name:"VJ - Extinction Zone",
+
+baseBoost:210,
+displayBoost:0,
+
+baseKill:210,
+baseNeso:4300,
+
+kill:210
+}
+
+
+
+];
+
+
+
+
+// =======================
+// RENDER
+// =======================
+
+
+function render(){
+
+
+let html="";
+
+
+
+maps.forEach((m,i)=>{
+
+
+html+=`
+
+<div class="card map-card">
+
+
+<h3>${m.name}</h3>
+
+
+<div>
+
+Boost %
+
+<input
+
+id="boost${i}"
+
+value="${m.displayBoost}"
+
+oninput="calc()"
+
+>
+
+</div>
+
+
+
+<div>
+
+Kill/min
+
+<input
+
+id="kill${i}"
+
+value="${m.kill}"
+
+oninput="calc()"
+
+>
+
+</div>
+
+
+
+<label>
+
+<input
+
+type="checkbox"
+
+id="pool${i}"
+
+onchange="calc()"
+
+>
+
+Pool cepat habis
+
+</label>
+
+
+</div>
+
+`;
+
+
+});
+
+
+
+document.getElementById("maps")
+.innerHTML=html;
+
+
+
+calc();
+
+
+}
+
+
+
+
+
+
+
+// =======================
+// CALCULATION
+// =======================
+
+
+function estimate(m,i){
+
+
+
+let boost =
+Number(
+
+document.getElementById(
+"boost"+i
+).value
+
+);
+
+
+
+let kill =
+Number(
+
+document.getElementById(
+"kill"+i
+).value
+
+);
+
+
+
+
+let pool =
+
+document.getElementById(
+"pool"+i
+).checked;
+
+
+
+
+
+let boostScale =
+
+(boost+100) /
+
+(m.baseBoost+100);
+
+
+
+
+let killScale =
+
+kill /
+
+m.baseKill;
+
+
+
+
+
+let total =
+
+m.baseNeso *
+
+boostScale *
+
+killScale;
+
+
+
+
+
+// penalty pool cepat habis
+
+if(pool){
+
+total*=0.85;
+
+}
+
+
+
+return total;
+
+
+}
+
+
+
+
+
+
+
+function calc(){
+
+
+let result=[];
+
+
+
+
+maps.forEach((m,i)=>{
+
+
+let min=
+
+estimate(m,i);
+
+
+
+result.push({
+
+name:m.name,
+
+min:min,
+
+hour:min*60
+
+});
+
+
+});
+
+
+
+
+result.sort(
+
+(a,b)=>b.hour-a.hour
+
+);
+
+
+
+
+
+let html="";
+
+
+
+
+result.forEach((r,i)=>{
+
+
+html+=`
+
+<div class="card ${i==0?'best':''}">
+
+
+<h3>
+
+${i+1}. ${r.name}
+
+</h3>
+
+
+
+NESO/min :
+
+<b>${Math.round(r.min)}</b>
+
+
+<br>
+
+
+15 menit :
+
+<b>${Math.round(r.min*15)}</b>
+
+
+<br>
+
+
+1 jam :
+
+<b>${Math.round(r.hour)}</b>
+
+
+
+
+${
+
+i==0?
+
+"<div class='recommend'>🔥 FARM HERE</div>"
+
+:""
+
+}
+
+
+
+</div>
+
+
+`;
+
+
+});
+
+
+
+
+document.getElementById("result")
+.innerHTML=html;
+
+
+}
+
+
+
+render();
+
+
+</script>
+
+
+</body>
+
+</html>
